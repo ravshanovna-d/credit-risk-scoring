@@ -1,0 +1,447 @@
+{
+  "title": "Credit Risk Scoring",
+  "subtitle": "Scores a loan application by the probability that the borrower turns out to be a bad credit risk, with a decision threshold tuned for the real cost of a bad loan.",
+  "tags": [
+    "Classification",
+    "scikit-learn",
+    "Random Forest",
+    "Cost-sensitive threshold",
+    "Nested CV",
+    "ONNX"
+  ],
+  "task": "classification",
+  "classes": [
+    0,
+    1
+  ],
+  "positive_class": 1,
+  "output_label": "Probability of bad credit risk",
+  "verdicts": [
+    "Approve \u2014 low risk",
+    "Review \u2014 above the cost-based cut-off",
+    "Likely reject \u2014 high risk"
+  ],
+  "thresholds": [
+    0.24,
+    0.5
+  ],
+  "result_note": "A bad loan is assumed to cost 5\u00d7 more than turning away a good customer, so applications are flagged from 24% risk, not 50%. Educational demo on 1970s German data \u2014 not a real lending decision.",
+  "features": [
+    {
+      "name": "duration",
+      "label": "Loan duration",
+      "help": "months",
+      "type": "number",
+      "min": 4.0,
+      "max": 60.0,
+      "step": 1,
+      "default": 18
+    },
+    {
+      "name": "amount",
+      "label": "Loan amount",
+      "help": "DM",
+      "type": "number",
+      "min": 276.0,
+      "max": 15945.0,
+      "step": 1,
+      "default": 2317
+    },
+    {
+      "name": "age",
+      "label": "Age",
+      "help": "years",
+      "type": "number",
+      "min": 19.0,
+      "max": 75.0,
+      "step": 1,
+      "default": 33
+    },
+    {
+      "name": "installment_rate",
+      "label": "Installment rate",
+      "help": "1\u20134, higher = larger share of income",
+      "type": "number",
+      "min": 1.0,
+      "max": 4.0,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "name": "number_credits",
+      "label": "Existing credits at this bank",
+      "help": "count",
+      "type": "number",
+      "min": 1.0,
+      "max": 4.0,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "name": "status",
+      "label": "Checking account balance",
+      "type": "category",
+      "options": [
+        "0\u2013200 DM",
+        "< 0 DM",
+        "No checking account",
+        "\u2265 200 DM / salary account"
+      ],
+      "default": "No checking account"
+    },
+    {
+      "name": "credit_history",
+      "label": "Credit history",
+      "type": "category",
+      "options": [
+        "All credits at this bank paid back",
+        "Critical account / credits elsewhere",
+        "Delays in the past",
+        "Existing credits paid on time",
+        "No credits / all paid back"
+      ],
+      "default": "Existing credits paid on time"
+    },
+    {
+      "name": "purpose",
+      "label": "Purpose",
+      "type": "category",
+      "options": [
+        "Business",
+        "Domestic appliances",
+        "Education",
+        "Furniture / equipment",
+        "New car",
+        "Other",
+        "Radio / TV",
+        "Repairs",
+        "Retraining",
+        "Used car"
+      ],
+      "default": "Radio / TV"
+    },
+    {
+      "name": "savings",
+      "label": "Savings",
+      "type": "category",
+      "options": [
+        "100\u2013500 DM",
+        "500\u20131000 DM",
+        "< 100 DM",
+        "Unknown / no savings",
+        "\u2265 1000 DM"
+      ],
+      "default": "< 100 DM"
+    },
+    {
+      "name": "employment_duration",
+      "label": "Employed for",
+      "type": "category",
+      "options": [
+        "1\u20134 years",
+        "4\u20137 years",
+        "< 1 year",
+        "Unemployed",
+        "\u2265 7 years"
+      ],
+      "default": "1\u20134 years"
+    },
+    {
+      "name": "property",
+      "label": "Most valuable property",
+      "type": "category",
+      "options": [
+        "Car or other",
+        "Real estate",
+        "Savings agreement / life insurance",
+        "Unknown / none"
+      ],
+      "default": "Car or other"
+    },
+    {
+      "name": "other_installment_plans",
+      "label": "Other installment plans",
+      "type": "category",
+      "options": [
+        "Bank",
+        "None",
+        "Stores"
+      ],
+      "default": "None"
+    },
+    {
+      "name": "housing",
+      "label": "Housing",
+      "type": "category",
+      "options": [
+        "For free",
+        "Own",
+        "Rent"
+      ],
+      "default": "Own"
+    }
+  ],
+  "examples": [
+    {
+      "duration": 30.0,
+      "amount": 5954.0,
+      "age": 38.0,
+      "installment_rate": 3.0,
+      "number_credits": 1.0,
+      "status": "No checking account",
+      "credit_history": "Critical account / credits elsewhere",
+      "purpose": "Radio / TV",
+      "savings": "< 100 DM",
+      "employment_duration": "4\u20137 years",
+      "property": "Car or other",
+      "other_installment_plans": "None",
+      "housing": "Own"
+    },
+    {
+      "duration": 36.0,
+      "amount": 12389.0,
+      "age": 37.0,
+      "installment_rate": 1.0,
+      "number_credits": 1.0,
+      "status": "0\u2013200 DM",
+      "credit_history": "Existing credits paid on time",
+      "purpose": "New car",
+      "savings": "Unknown / no savings",
+      "employment_duration": "1\u20134 years",
+      "property": "Unknown / none",
+      "other_installment_plans": "None",
+      "housing": "For free"
+    },
+    {
+      "duration": 9.0,
+      "amount": 2118.0,
+      "age": 37.0,
+      "installment_rate": 2.0,
+      "number_credits": 1.0,
+      "status": "0\u2013200 DM",
+      "credit_history": "Existing credits paid on time",
+      "purpose": "Radio / TV",
+      "savings": "< 100 DM",
+      "employment_duration": "1\u20134 years",
+      "property": "Real estate",
+      "other_installment_plans": "None",
+      "housing": "Own"
+    },
+    {
+      "duration": 12.0,
+      "amount": 7472.0,
+      "age": 24.0,
+      "installment_rate": 1.0,
+      "number_credits": 1.0,
+      "status": "0\u2013200 DM",
+      "credit_history": "Existing credits paid on time",
+      "purpose": "New car",
+      "savings": "Unknown / no savings",
+      "employment_duration": "Unemployed",
+      "property": "Real estate",
+      "other_installment_plans": "None",
+      "housing": "Rent"
+    },
+    {
+      "duration": 12.0,
+      "amount": 1963.0,
+      "age": 31.0,
+      "installment_rate": 4.0,
+      "number_credits": 2.0,
+      "status": "No checking account",
+      "credit_history": "Existing credits paid on time",
+      "purpose": "Radio / TV",
+      "savings": "< 100 DM",
+      "employment_duration": "4\u20137 years",
+      "property": "Car or other",
+      "other_installment_plans": "None",
+      "housing": "Rent"
+    },
+    {
+      "duration": 15.0,
+      "amount": 1905.0,
+      "age": 40.0,
+      "installment_rate": 4.0,
+      "number_credits": 1.0,
+      "status": "\u2265 200 DM / salary account",
+      "credit_history": "Existing credits paid on time",
+      "purpose": "Education",
+      "savings": "< 100 DM",
+      "employment_duration": "\u2265 7 years",
+      "property": "Car or other",
+      "other_installment_plans": "None",
+      "housing": "Rent"
+    },
+    {
+      "duration": 13.0,
+      "amount": 882.0,
+      "age": 23.0,
+      "installment_rate": 4.0,
+      "number_credits": 2.0,
+      "status": "0\u2013200 DM",
+      "credit_history": "Critical account / credits elsewhere",
+      "purpose": "Radio / TV",
+      "savings": "< 100 DM",
+      "employment_duration": "< 1 year",
+      "property": "Real estate",
+      "other_installment_plans": "None",
+      "housing": "Own"
+    },
+    {
+      "duration": 12.0,
+      "amount": 1255.0,
+      "age": 61.0,
+      "installment_rate": 4.0,
+      "number_credits": 2.0,
+      "status": "No checking account",
+      "credit_history": "Critical account / credits elsewhere",
+      "purpose": "New car",
+      "savings": "< 100 DM",
+      "employment_duration": "\u2265 7 years",
+      "property": "Real estate",
+      "other_installment_plans": "None",
+      "housing": "Own"
+    },
+    {
+      "duration": 4.0,
+      "amount": 1544.0,
+      "age": 42.0,
+      "installment_rate": 2.0,
+      "number_credits": 3.0,
+      "status": "No checking account",
+      "credit_history": "Critical account / credits elsewhere",
+      "purpose": "Radio / TV",
+      "savings": "< 100 DM",
+      "employment_duration": "4\u20137 years",
+      "property": "Real estate",
+      "other_installment_plans": "None",
+      "housing": "Own"
+    },
+    {
+      "duration": 12.0,
+      "amount": 625.0,
+      "age": 26.0,
+      "installment_rate": 4.0,
+      "number_credits": 1.0,
+      "status": "0\u2013200 DM",
+      "credit_history": "Existing credits paid on time",
+      "purpose": "Radio / TV",
+      "savings": "< 100 DM",
+      "employment_duration": "< 1 year",
+      "property": "Real estate",
+      "other_installment_plans": "Bank",
+      "housing": "Own"
+    },
+    {
+      "duration": 18.0,
+      "amount": 1442.0,
+      "age": 32.0,
+      "installment_rate": 4.0,
+      "number_credits": 2.0,
+      "status": "< 0 DM",
+      "credit_history": "All credits at this bank paid back",
+      "purpose": "New car",
+      "savings": "< 100 DM",
+      "employment_duration": "4\u20137 years",
+      "property": "Unknown / none",
+      "other_installment_plans": "None",
+      "housing": "For free"
+    },
+    {
+      "duration": 6.0,
+      "amount": 590.0,
+      "age": 26.0,
+      "installment_rate": 3.0,
+      "number_credits": 1.0,
+      "status": "0\u2013200 DM",
+      "credit_history": "Existing credits paid on time",
+      "purpose": "Radio / TV",
+      "savings": "< 100 DM",
+      "employment_duration": "< 1 year",
+      "property": "Real estate",
+      "other_installment_plans": "None",
+      "housing": "Own"
+    }
+  ],
+  "model_name": "Random Forest",
+  "comparison": [
+    {
+      "model": "Random Forest",
+      "ROC-AUC": 0.7944940476190476,
+      "F1": 0.4621402099662969,
+      "Accuracy": 0.75625
+    },
+    {
+      "model": "Gradient Boosting",
+      "ROC-AUC": 0.7836681547619048,
+      "F1": 0.5001819419023118,
+      "Accuracy": 0.7462500000000001
+    },
+    {
+      "model": "Logistic Regression",
+      "ROC-AUC": 0.7761904761904761,
+      "F1": 0.513613244312497,
+      "Accuracy": 0.7462500000000001
+    },
+    {
+      "model": "SVC (tuned)",
+      "ROC-AUC": 0.7747395833333333,
+      "F1": 0.49590202684593593,
+      "Accuracy": 0.7550000000000001
+    }
+  ],
+  "test_metrics": {
+    "ROC-AUC": 0.7846428571428571,
+    "Accuracy": 0.75,
+    "Recall (bad) @ 0.5": 0.4,
+    "Recall (bad) @ 0.24": 0.85,
+    "Precision (bad) @ 0.24": 0.4322033898305085,
+    "Cost / applicant @ 0.5": 0.97,
+    "Cost / applicant @ 0.24": 0.56
+  },
+  "metric_formats": {
+    "Accuracy": "percent",
+    "Recall (bad) @ 0.5": "percent",
+    "Recall (bad) @ 0.24": "percent",
+    "Precision (bad) @ 0.24": "percent"
+  },
+  "metrics_note": "Held-out test set of 200 applicants. Cost = 5 per approved bad loan + 1 per rejected good applicant, averaged per applicant (approving everyone costs 1.50).",
+  "figures": [
+    {
+      "src": "assets/cost_vs_threshold.png",
+      "caption": "Choosing the cut-off by business cost instead of using 0.5."
+    },
+    {
+      "src": "assets/feature_importance.png",
+      "caption": "What drives the prediction the most."
+    },
+    {
+      "src": "assets/bad_rate_by_status.png",
+      "caption": "Applicants with a negative checking balance default most often."
+    },
+    {
+      "src": "assets/roc_curve.png",
+      "caption": "ROC curve on the test set."
+    },
+    {
+      "src": "assets/confusion_matrix.png",
+      "caption": "Test-set decisions at the cost-based threshold (0.24)."
+    }
+  ],
+  "steps": [
+    "Loaded 1,000 loan applications (UCI Statlog German Credit) and decoded the A11/A12\u2026 attribute codes into readable categories.",
+    "Kept 13 features a loan officer would enter; left out sex / marital status and foreign-worker status.",
+    "Built one scikit-learn Pipeline: scaling for numbers, one-hot encoding for categories.",
+    "Compared Logistic Regression, a tuned SVC (grid search inside each fold), Random Forest and Gradient Boosting with stratified 5-fold cross-validation.",
+    "Picked Random Forest by ROC-AUC, then chose the decision threshold that minimises expected cost (bad loan = 5\u00d7 a rejected good one) on out-of-fold predictions.",
+    "Evaluated once on a held-out 20% test set and exported the pipeline to ONNX for the browser."
+  ],
+  "dataset": {
+    "name": "Statlog (German Credit Data), UCI",
+    "url": "https://archive.ics.uci.edu/dataset/144/statlog+german+credit+data",
+    "rows": 1000
+  },
+  "repo_url": "https://github.com/ravshanovna-d/credit-risk-scoring",
+  "notebook_url": "https://github.com/ravshanovna-d/credit-risk-scoring/blob/main/notebook.ipynb",
+  "footer": "Built by <a href=\"https://github.com/ravshanovna-d\">ravshanovna-d</a>"
+}
