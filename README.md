@@ -2,7 +2,7 @@
 
 Scores a loan application by the probability that the borrower turns out to be a bad credit risk, with a decision threshold tuned for the real cost of a bad loan.
 
-**[Live demo →](LIVE_DEMO_URL)** — enter an application (checking balance, loan amount and duration, credit history, savings…) and get a risk score with an approve / review / reject suggestion. The model runs in your browser (ONNX Runtime Web), no server needed.
+**[Live demo →](https://ravshanovna-credit-risk.vercel.app)** — enter an application (checking balance, loan amount and duration, credit history, savings…) and get a risk score with an approve / review / reject suggestion. The model runs in your browser (ONNX Runtime Web), no server needed.
 
 ![Cost vs threshold](web/assets/cost_vs_threshold.png)
 
